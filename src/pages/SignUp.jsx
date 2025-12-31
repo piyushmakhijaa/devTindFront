@@ -10,7 +10,7 @@ function SignUp(){
 
     const onSignUp = async(e)=>{
       e.preventDefault();
-             await axios.post("/api/signup")   
+             await axios.post("/api/signup",{name : name, email : email, password : password})   
     }
 
     return(
