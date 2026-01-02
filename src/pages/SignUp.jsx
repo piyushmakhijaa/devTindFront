@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useDispatch } from "react-redux";
+import { addUser } from "../utils/userSlice";
+import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 function SignUp(){
 
     const navigate = useNavigate();
@@ -9,7 +13,7 @@ function SignUp(){
     const [password,setPassword] = useState("");
     const [age,setAge] = useState();
     const [gender,setGender] = useState("");
-
+    const dispatch = useDispatch();
     const onSignUp = async(e)=>{
 
      const parts = name.split(" ");
@@ -29,9 +33,22 @@ if (parts[1]) {
 
 await axios.post("/api/signup", payload, { withCredentials: true });
 
-   }
+try {
+    const res = await axios.post(
+      "/api/login",
+      { emailId: email, password: password },
+      { withCredentials: true }
+    );
+    console.log(res.data);
+    dispatch(addUser(res.data));
+   // console.log(user);
+    navigate("/feed");
+  } catch (err) {
+    console.log(err);
+  }
+        }
 
-    return(
+        return(
        <div className="card card-bordered bg-base-300 w-96 my-5 mx-auto border-black-500">
     <div className="card-body">
       <h2 className="card-title mx-37">SignUp</h2>
