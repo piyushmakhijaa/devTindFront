@@ -20,7 +20,7 @@ function App() {
   <BrowserRouter>
       <Routes>
         <Route path='/' element={<Body />}>
-                 <Route path={'/'||'login'} element={ <PublicRoute>   <Login /> </PublicRoute> } />
+                 <Route path={'/login'} element={ <PublicRoute>   <Login /> </PublicRoute> } />
                  <Route path='signup' element={<PublicRoute>  <SignUp />  </PublicRoute>} />
                  <Route path='feed' element={    <Feed />   } />
                  <Route path='profile' element={  <Profile />   } />
