@@ -7,11 +7,29 @@ function SignUp(){
     const [name,setName] = useState("");
     const [email,setEmail] = useState("");
     const [password,setPassword] = useState("");
+    const [age,setAge] = useState();
+    const [gender,setGender] = useState("");
 
     const onSignUp = async(e)=>{
+
+     const parts = name.split(" ");
+
       e.preventDefault();
-             await axios.post("/api/signup",{name : name, email : email, password : password}, {withCredentials: true})   
-    }
+const payload = {
+  firstName: parts[0],
+  emailId: email,
+  password: password,
+  age : age,
+  gender : gender
+};
+
+if (parts[1]) {
+  payload.lastName = parts[1];
+}
+
+await axios.post("/api/signup", payload, { withCredentials: true });
+
+   }
 
     return(
        <div className="card card-bordered bg-base-300 w-96 my-5 mx-auto border-black-500">
@@ -24,7 +42,7 @@ function SignUp(){
         id="name"
           type="text"
           className="input input-bordered w-full"
-          placeholder="Enter Your Name"
+          placeholder="Enter Your Full Name"
           value={name}
           onChange={(e)=> setName(e.target.value)}
           required
@@ -45,6 +63,33 @@ function SignUp(){
           required
         />
       </fieldset>
+
+          <fieldset className="fieldset">
+        <label className="fieldset-legend" htmlFor="age">Age</label>
+        <input
+        id="age"
+          type="number"
+          className="input input-bordered w-full"
+          placeholder="Enter Your Age"
+          value={age<0?0:age}
+          onChange={(e)=> setAge(e.target.value)}
+          required
+        />
+      </fieldset>
+      
+          <fieldset className="fieldset">
+        <label className="fieldset-legend" htmlFor="age">Gender</label>
+        <input
+        id="gender"
+          type="text"
+          className="input input-bordered w-full"
+          placeholder="Enter Your Gender"
+          value={gender}
+          onChange={(e)=> setGender(e.target.value)}
+          required
+        />
+      </fieldset>
+
 
       <fieldset className="fieldset">
         <label className="fieldset-legend" htmlFor="password">Password</label>
