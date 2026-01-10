@@ -109,18 +109,27 @@ try {
         />
       </fieldset>
       
-          <fieldset className="fieldset">
-        <label className="fieldset-legend" htmlFor="age">Gender</label>
-        <input
-        id="gender"
-          type="text"
-          className="input input-bordered w-full"
-          placeholder="Enter Your Gender"
-          value={gender}
-          onChange={(e)=> setGender(e.target.value)}
-          required
-        />
-      </fieldset>
+<fieldset className="fieldset">
+  <label className="fieldset-legend" htmlFor="gender">
+    Gender
+  </label>
+
+  <select
+    id="gender"
+    className="select select-bordered w-full"
+    value={gender}
+    onChange={(e) => setGender(e.target.value)}
+    required
+  >
+    <option value="" disabled>
+      Select your gender
+    </option>
+    <option value="Male">Male</option>
+    <option value="Female">Female</option>
+    <option value="Others">Others</option>
+  </select>
+</fieldset>
+
 
 
       <fieldset className="fieldset">

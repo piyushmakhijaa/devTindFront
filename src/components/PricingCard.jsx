@@ -17,8 +17,8 @@ async function handleOrder(){
         order_id: response.data.order.id , // This is the order_id created in the backend
         prefill: {
           name: response.data.order.notes.firstName,
-          email: 'piyush.test@example.com',
-          contact: '9999999999'
+          email: response.data.order.notes.emailId,
+          contact: response.data.order.notes.phone
         },
         theme: {
           color: '#F37254'
