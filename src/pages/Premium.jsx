@@ -1,4 +1,4 @@
-import PricingCard from "../components/pricingCard";
+import PricingCard from "../components/PricingCard";
 function Premium(){
 
 
