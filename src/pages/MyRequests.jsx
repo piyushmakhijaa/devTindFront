@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import Card from "../components/Card";
-
+import { BASE_URL } from "../utils/constants";
 function MyRequests() {
   const [feedUsers, setFeedUsers] = useState([]);
 
   useEffect(() => {
     const fetchRequests = async () => {
       try {
-        const res = await axios.get("/api/user/requests", {
+        const res = await axios.get(`${BASE_URL}` + `/user/requests`, {
           withCredentials: true,
         });
 

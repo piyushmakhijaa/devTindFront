@@ -1,11 +1,11 @@
 import axios from "axios"
-
+import { BASE_URL } from "../utils/constants";
 function Card({u, getFeed, MyRequests}){
    
   const handleInterested = async()=>{
     try{
       console.log(u._id);
-     const res = await axios.post(`/api/request/send/interested/${u._id}`,{},{withCredentials:true});
+     const res = await axios.post(`${BASE_URL}` + `/request/send/interested/${u._id}`,{},{withCredentials:true});
       
      //alert(`${res.data.message}`);
      console.log(`${res.data.message}`);
@@ -22,7 +22,7 @@ function Card({u, getFeed, MyRequests}){
   const handleAccept = async()=>{
     let res;
     try{
-      res = await axios.post(`/api/request/review/accepted/${u.reqId}`,{withCredentials:true});
+      res = await axios.post(`${BASE_URL}` + `/request/review/accepted/${u.reqId}`,{withCredentials:true});
     }catch(err){
       console.log(err);
     }

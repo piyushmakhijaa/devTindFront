@@ -4,6 +4,8 @@ import Card from "../components/Card";
 import { useNavigate } from "react-router-dom";
 import { removeUser } from "../utils/userSlice";
 import { useDispatch } from "react-redux";
+import { BASE_URL } from "../utils/constants";
+
 function Feed(){
 //const [number,setNumber]  = useState();
 const [feedUsers,setFeedUsers] = useState([]);
@@ -13,7 +15,7 @@ const dispatch = useDispatch();
 async function getFeed() {
 
     try{
-         await axios.get("/api/user/feed",{withCredentials:true})
+         await axios.get(`${BASE_URL}` + `/user/feed`,{withCredentials:true})
          .then((feedData)=>{
           console.log(feedData);
           setFeedUsers(feedData.data.users);

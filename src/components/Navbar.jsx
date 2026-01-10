@@ -6,18 +6,20 @@ import { addUser } from "../utils/userSlice";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useLocation } from "react-router-dom";
+import { BASE_URL } from "../utils/constants";
+
 function Navbar() {
 
     const user1 = useSelector((state=> state.user));
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
-
+  
 console.log(user1);
    
     const handleLogOut = async()=>{
       try{
-        const res = await axios.post("/api/logout",{},{withCredentials : true});
+        const res = await axios.post(`${BASE_URL}` + `/logout`,{},{withCredentials : true});
         if(res){
           dispatch(removeUser());
           navigate("/login")
@@ -59,6 +61,11 @@ console.log(user1);
             <li>
               <Link to="/profile" className="justify-between">
                 Profile
+              </Link>
+            </li>
+            <li>
+              <Link to="/premium" className="justify-between">
+                Premiums
               </Link>
             </li>
             <li>

@@ -4,11 +4,13 @@ import axios from "axios";
 import { useDispatch } from "react-redux";
 import { addUser } from "../utils/userSlice";
 import { useSelector } from "react-redux";
+import { BASE_URL } from "../utils/constants";
 function SignUp(){
 
     const navigate = useNavigate();
     const [name,setName] = useState("");
     const [email,setEmail] = useState("");
+    const [phone,setPhone] = useState("");
     const [password,setPassword] = useState("");
     const [age,setAge] = useState();
     const [gender,setGender] = useState("");
@@ -22,6 +24,7 @@ const payload = {
   firstName: parts[0],
   emailId: email,
   password: password,
+  phone : phone,
   age : age,
   gender : gender
 };
@@ -30,11 +33,11 @@ if (parts[1]) {
   payload.lastName = parts[1];
 }
 
-await axios.post("/api/signup", payload, { withCredentials: true });
+await axios.post(`${BASE_URL}` + `/signup`, payload, { withCredentials: true });
 
 try {
     const res = await axios.post(
-      "/api/login",
+      `${BASE_URL}` + `/login`,
       { emailId: email, password: password },
       { withCredentials: true }
     );
@@ -76,6 +79,19 @@ try {
           placeholder="Enter Email"
           value={email}
           onChange={(e)=> setEmail(e.target.value)}
+          required
+        />
+      </fieldset>
+
+      <fieldset className="fieldset">
+        <label className="fieldset-legend" htmlFor="phone">Phone</label>
+        <input
+        id="phone"
+          type="tel"
+          className="input input-bordered w-full"
+          placeholder="Enter Phone Number"
+          value={phone}
+          onChange={(e)=> setPhone(e.target.value)}
           required
         />
       </fieldset>

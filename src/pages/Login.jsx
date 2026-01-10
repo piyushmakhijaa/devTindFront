@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import { addUser } from "../utils/userSlice";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import { BASE_URL } from "../utils/constants";
 function Login()
 {
     const [email,setEmail] = useState("");
@@ -19,7 +20,7 @@ function Login()
               e.preventDefault();
 try {
     const res = await axios.post(
-      "/api/login",
+      `${BASE_URL}` + `/login`,
       { emailId: email, password: password },
       { withCredentials: true }
     );
