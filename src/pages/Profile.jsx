@@ -6,7 +6,7 @@ import { BASE_URL } from "../utils/constants";
 
 function Profile() {
   const user1 = useSelector((state) => state.user);
-  console.log(user1);
+  //console.log(user1);
   const dispatch = useDispatch();
   const [isEditing, setIsEditing] = useState(false);
 
@@ -40,7 +40,7 @@ async  function  handleSubmit(e){
         const {name, ...rest} = data;
         updated = {...rest, firstName:parts[0], lastName:parts[1]}
       }
-    console.log(updated);
+    //console.log(updated);
     try{
   const res = await axios.patch(`${BASE_URL}/user`,updated,{withCredentials:true});
   dispatch(addUser(res.data));

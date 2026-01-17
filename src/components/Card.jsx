@@ -1,6 +1,6 @@
 import axios from "axios"
 import { BASE_URL } from "../utils/constants";
-function Card({u, getFeed, MyRequests}){
+function Card({u, getFeed, fetchRequests}){
    
   const handleInterested = async()=>{
     try{
@@ -22,15 +22,25 @@ function Card({u, getFeed, MyRequests}){
   const handleAccept = async()=>{
     let res;
     try{
-      res = await axios.post(`${BASE_URL}` + `/request/review/accepted/${u.reqId}`,{withCredentials:true});
+      res = await axios.post(`${BASE_URL}` + `/request/review/accepted/${u.reqId}`,{},{withCredentials:true});
     }catch(err){
       console.log(err);
     }
      alert(res.data.message);
+     if(fetchRequests)
+      fetchRequests();
     }
 
   const handleReject = async()=>{
-
+    let res;
+    try{
+      res = await axios.post(`${BASE_URL}` + `/request/review/rejected/${u.reqId}`,{},{withCredentials:true});
+    }catch(err){
+      console.log(err);
+    }
+     alert(res.data.message);
+      if(fetchRequests)
+      fetchRequests();
   }
 
 
@@ -51,7 +61,7 @@ function Card({u, getFeed, MyRequests}){
       <button className="btn btn-primary">IGNORE</button>
     </div>}
 
-    { MyRequests &&
+    { fetchRequests &&
       <div className="card-actions">
       <button className="btn btn-secondary" onClick={handleAccept} >ACCEPT</button>
       <button className="btn btn-primary" onClick={handleReject} >REJECT</button>

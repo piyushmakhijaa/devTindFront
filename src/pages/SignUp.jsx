@@ -41,7 +41,7 @@ try {
       { emailId: email, password: password },
       { withCredentials: true }
     );
-    console.log(res.data);
+    //console.log(res.data);
     dispatch(addUser(res.data));
    // console.log(user);
     navigate("/feed");
@@ -126,7 +126,7 @@ try {
     </option>
     <option value="Male">Male</option>
     <option value="Female">Female</option>
-    <option value="Others">Others</option>
+    <option value="Other">Other</option>
   </select>
 </fieldset>
 

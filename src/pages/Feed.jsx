@@ -17,7 +17,7 @@ async function getFeed() {
     try{
          await axios.get(`${BASE_URL}` + `/user/feed`,{withCredentials:true})
          .then((feedData)=>{
-          console.log(feedData);
+          //console.log(feedData);
           setFeedUsers(feedData.data.users);
          // setNumber(feedData.data.users.length);
          })
