@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { removeUser } from "../utils/userSlice";
 import { useNavigate } from "react-router-dom";
 import { addUser } from "../utils/userSlice";
-import { useEffect } from "react";
+import Button from '@mui/material/Button'
 import { Link } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import { BASE_URL } from "../utils/constants";
@@ -36,7 +36,8 @@ console.log(user1);
       <div className="flex-1">
         <Link to="/feed" className="btn btn-ghost text-xl font-roboto">👨‍💻devTinder</Link>
       </div>
-        {user1._id && <Link to="/myRequests">MyRequests</Link>}
+        {user1._id && <Link to="/myConnections"><Button>My Connections</Button></Link>}
+        {user1._id && <Link to="/myRequests"><Button>My Requests</Button></Link>}
       {user1._id && <span className="mx-2 font-roboto">{user1.firstName}</span>}
 
       {user1._id && <div className="flex gap-2">

@@ -40,9 +40,9 @@ async  function  handleSubmit(e){
         const {name, ...rest} = data;
         updated = {...rest, firstName:parts[0], lastName:parts[1]}
       }
-    //console.log(updated);
+    console.log(data);
     try{
-  const res = await axios.patch(`${BASE_URL}/user`,updated,{withCredentials:true});
+  const res =  await axios.patch(`${BASE_URL}/user`,parts[1]?updated:data,{withCredentials:true});
   dispatch(addUser(res.data));
     setIsEditing(false);
     }catch(err)

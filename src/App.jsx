@@ -12,6 +12,9 @@ import { Provider } from 'react-redux'
 import { appStore, persistor } from './utils/appStore'
 import { PersistGate } from "redux-persist/integration/react"
 import { useEffect } from 'react'
+import MyConnections from './pages/MyConnections'
+import Chat from './pages/Chat'
+
 
 function AppRoutes() {
   const location = useLocation();
@@ -32,6 +35,8 @@ function AppRoutes() {
         <Route path='profile' element={<Profile />} />
         <Route path='premium' element={<Premium />} />
         <Route path='myRequests' element={<MyRequests />} />
+        <Route path='myConnections' element={<MyConnections />} />
+        <Route path='chat/:targetUserId' element={<Chat />} />
       </Route>
     </Routes>
   );

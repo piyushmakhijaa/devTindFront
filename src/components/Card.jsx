@@ -1,14 +1,18 @@
 import axios from "axios"
 import { BASE_URL } from "../utils/constants";
-function Card({u, getFeed, fetchRequests}){
-   
+import { useNavigate } from "react-router-dom";
+import createSocketConnection from "../utils/socket";
+import { useSelector } from "react-redux";
+function Card({u, getFeed, fetchRequests, fetchConnections}){
+
+   const targetId = u._id;
   const handleInterested = async()=>{
     try{
-      console.log(u._id);
+      //console.log(u._id);
      const res = await axios.post(`${BASE_URL}` + `/request/send/interested/${u._id}`,{},{withCredentials:true});
       
      //alert(`${res.data.message}`);
-     console.log(`${res.data.message}`);
+     //console.log(`${res.data.message}`);
 
      if(getFeed)
       getFeed();
@@ -42,6 +46,10 @@ function Card({u, getFeed, fetchRequests}){
       if(fetchRequests)
       fetchRequests();
   }
+ const navigate = useNavigate();
+  const handleChat =()=>{
+        navigate(`/chat/${u._id}`);
+  }
 
 
     return(
@@ -49,7 +57,7 @@ function Card({u, getFeed, fetchRequests}){
   <figure className="px-10 pt-10">
     <img
       src={u.photoUrl}
-      alt="Shoes"
+      alt="No Profile Photo"
       className="rounded-xl" />
   </figure>
   <div className="card-body items-center text-center">
@@ -66,7 +74,12 @@ function Card({u, getFeed, fetchRequests}){
       <button className="btn btn-secondary" onClick={handleAccept} >ACCEPT</button>
       <button className="btn btn-primary" onClick={handleReject} >REJECT</button>
     </div>
+    }
 
+    {fetchConnections &&
+      //<div className="card-actions">
+      <button className="btn btn-primary" onClick={handleChat} >CHAT</button>
+   // </div>
     }
   </div>
 </div>
