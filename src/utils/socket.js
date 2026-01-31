@@ -9,7 +9,7 @@ socket = io(BASE_URL, {
  autoConnect: true
 });
 }else{
-socket = io("/", {path : "/api/scket.io"},{
+socket = io("/", {path : "/api/socket.io"},{
  withCredentials:true,
  autoConnect: true
 })
