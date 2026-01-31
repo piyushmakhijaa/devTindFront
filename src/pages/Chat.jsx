@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { BASE_URL } from "../utils/constants";
 import socket from "../utils/socket";
+import { cn } from "../utils/cn";
 
 function Chat() {
   const { targetUserId } = useParams();
@@ -13,64 +14,62 @@ function Chat() {
   const [newMessage, setNewMessage] = useState("");
   const [targetUser, setTargetUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const messagesEndRef = useRef(null);
-  const {_id} = useSelector((state) => state.user);
+  const [isSending, setIsSending] = useState(false);
+  const messagesContainerRef = useRef(null);
+  const { _id } = useSelector((state) => state.user);
 
- 
-
-  // Scroll to bottom of messages
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
+  // Socket connection
+  useEffect(() => {
+    if (!_id || !targetUserId) return;
 
-useEffect(() => {
-  const joinChat = () => {
-    socket.emit("joinChat", { _id, targetUserId });
-  };
+    const joinChat = () => {
+      socket.emit("joinChat", { _id, targetUserId });
+    };
 
-  if (socket.connected) {
-    joinChat();
-  } else {
-    socket.on("connect", joinChat);
-  }
-
-  const onReceiveMessage = (messageData) => {
-    //console.log(messageData);
-    setMessages((prev) => [...prev, messageData]);
-  };
-
-  socket.on("receive-message", onReceiveMessage);
-
-  return () => {
-    socket.off("connect", joinChat);
-    socket.off("receive-message", onReceiveMessage);
-  };
-}, [_id, targetUserId]);
-
-
-useEffect(()=>{
-  const fetchMessages = async()=>{
-
-    try{
-     
-      const msgs = await axios.get(`${BASE_URL}/user/chat/${targetUserId}`,{withCredentials : true});
-//console.log(msgs);
-      if(msgs.data.length!=0)
-      {
-        setMessages((prev) => [...prev, ...msgs.data]);
-      }
-    }catch(err){
-      console.log(err);
+    if (socket.connected) {
+      joinChat();
+    } else {
+      socket.on("connect", joinChat);
     }
-  }
-  fetchMessages();
-},[targetUserId])
 
+    const onReceiveMessage = (messageData) => {
+      setMessages((prev) => [...prev, messageData]);
+    };
+
+    socket.on("receive-message", onReceiveMessage);
+
+    return () => {
+      socket.off("connect", joinChat);
+      socket.off("receive-message", onReceiveMessage);
+    };
+  }, [_id, targetUserId]);
+
+  // Fetch existing messages
+  useEffect(() => {
+    const fetchMessages = async () => {
+      try {
+        const msgs = await axios.get(`${BASE_URL}/user/chat/${targetUserId}`, {
+          withCredentials: true,
+        });
+        if (msgs.data.length !== 0) {
+          setMessages(msgs.data);
+        }
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchMessages();
+  }, [targetUserId]);
 
   // Fetch target user info
   useEffect(() => {
@@ -92,13 +91,11 @@ useEffect(()=>{
     fetchTargetUser();
   }, [targetUserId]);
 
-  // TODO: Add your socket connection logic here
-
-  // Handle sending message
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || !user._id) return;
 
+    setIsSending(true);
     const messageData = {
       senderId: user._id,
       receiverId: targetUserId,
@@ -106,116 +103,78 @@ useEffect(()=>{
       timestamp: new Date().toISOString(),
     };
 
-    // TODO: Emit message via socket here
     socket.emit("message", messageData);
-
     setMessages((prev) => [...prev, messageData]);
     setNewMessage("");
+
+    setTimeout(() => setIsSending(false), 300);
   };
 
-  // Format timestamp
   const formatTime = (timestamp) => {
+    if (!timestamp) return "";
     const date = new Date(timestamp);
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-base-200">
-        <span className="loading loading-spinner loading-lg text-primary"></span>
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-4 animate-fade-in">
+          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin" />
+          <p className="text-slate-600">Loading chat...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)] max-w-4xl mx-auto bg-base-100 shadow-2xl rounded-2xl overflow-hidden m-4">
+    <div className="flex flex-col h-[calc(100vh-80px)] max-w-4xl mx-auto bg-white shadow-xl rounded-2xl overflow-hidden m-4 animate-scale-in opacity-0">
       {/* Chat Header */}
-      <div className="bg-gradient-to-r from-primary to-secondary p-4 flex items-center gap-4 shadow-lg">
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-4 flex items-center gap-4 shadow-lg animate-fade-in-down">
         <button
           onClick={() => navigate("/myConnections")}
-          className="btn btn-ghost btn-circle text-white hover:bg-white/20"
+          className="p-2 rounded-full text-white/80 hover:bg-white/20 transition-all duration-200"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
+          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        
-        <div className="avatar">
-          <div className="w-12 h-12 rounded-full ring ring-white ring-offset-base-100 ring-offset-2">
+
+        <div className="relative">
+          <div className="w-12 h-12 rounded-full ring-2 ring-white ring-offset-2 ring-offset-blue-600 overflow-hidden">
             <img
-              src={targetUser?.photoUrl || "https://via.placeholder.com/100"}
+              src={targetUser?.photoUrl || "/placeholder.svg"}
               alt={targetUser?.firstName || "User"}
+              className="w-full h-full object-cover"
             />
           </div>
+          {/* Online indicator */}
+          <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-blue-600 animate-pulse" />
         </div>
-        
+
         <div className="flex-1">
           <h2 className="text-xl font-bold text-white">
             {targetUser?.firstName} {targetUser?.lastName}
           </h2>
+          <p className="text-sm text-white/70">Online</p>
         </div>
-        
-        <div className="dropdown dropdown-end">
-          <label tabIndex={0} className="btn btn-ghost btn-circle text-white hover:bg-white/20">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
-              />
-            </svg>
-          </label>
-          <ul
-            tabIndex={0}
-            className="dropdown-content menu p-2 shadow-lg bg-base-100 rounded-box w-52 mt-2"
-          >
-            <li>
-              <a>View Profile</a>
-            </li>
-            <li>
-              <a className="text-error">Block User</a>
-            </li>
-          </ul>
-        </div>
+
+        <button className="p-2 rounded-full text-white/80 hover:bg-white/20 transition-colors">
+          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+          </svg>
+        </button>
       </div>
 
       {/* Messages Container */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-base-200/50 to-base-100">
+      <div 
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto p-4 space-y-4 bg-gradient-to-b from-slate-100/50 to-white"
+      >
         {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-base-content/50">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-20 w-20 mb-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1}
-                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-              />
-            </svg>
-            <p className="text-lg">No messages yet</p>
+          <div className="flex flex-col items-center justify-center h-full text-slate-500 animate-fade-in">
+            <div className="text-6xl mb-4 animate-float">💬</div>
+            <p className="text-lg font-medium">No messages yet</p>
             <p className="text-sm">Say hello to start the conversation!</p>
           </div>
         ) : (
@@ -224,111 +183,109 @@ useEffect(()=>{
             return (
               <div
                 key={index}
-                className={`chat ${isOwnMessage ? "chat-end" : "chat-start"}`}
+                className={cn(
+                  "flex items-end gap-2 animate-message-in opacity-0",
+                  isOwnMessage ? "justify-end" : "justify-start"
+                )}
+                style={{ animationDelay: `${Math.min(index * 0.05, 0.5)}s` }}
               >
-                <div className="chat-image avatar">
-                  <div className="w-10 rounded-full shadow-md">
+                {!isOwnMessage && (
+                  <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
                     <img
-                      src={
-                        isOwnMessage
-                          ? user.photoUrl
-                          : targetUser?.photoUrl || "https://via.placeholder.com/100"
-                      }
+                      src={targetUser?.photoUrl || "/placeholder.svg"}
                       alt="avatar"
+                      className="w-full h-full object-cover"
                     />
                   </div>
-                </div>
+                )}
+
                 <div
-                  className={`chat-bubble shadow-md ${
+                  className={cn(
+                    "max-w-[70%] px-4 py-2 rounded-2xl shadow-sm",
                     isOwnMessage
-                      ? "bg-gradient-to-r from-primary to-primary/80 text-primary-content"
-                      : "bg-base-200 text-base-content"
-                  }`}
+                      ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-br-md"
+                      : "bg-white text-slate-800 rounded-bl-md border border-slate-200"
+                  )}
                 >
-                  {msg.text}
+                  <p className="break-words">{msg.text}</p>
+                  <p
+                    className={cn(
+                      "text-xs mt-1",
+                      isOwnMessage ? "text-white/70" : "text-slate-500"
+                    )}
+                  >
+                    {formatTime(msg.timestamp || msg.sentAt)}
+                  </p>
                 </div>
-                <div className="chat-footer opacity-50 text-xs mt-1">
-                  {formatTime(msg.timestamp || msg.sentAt)}
-                </div>
+
+                {isOwnMessage && (
+                  <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0">
+                    <img
+                      src={user?.photoUrl || "/placeholder.svg"}
+                      alt="You"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
               </div>
             );
           })
         )}
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Message Input */}
       <form
         onSubmit={handleSendMessage}
-        className="p-4 bg-base-100 border-t border-base-300"
+        className="p-4 bg-white border-t border-slate-200 animate-fade-in-up"
       >
         <div className="flex gap-3 items-center">
           <button
             type="button"
-            className="btn btn-ghost btn-circle hover:bg-primary/10"
+            className="p-2 rounded-full text-slate-500 hover:bg-slate-100 hover:text-blue-600 transition-colors"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-primary"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-              />
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
             </svg>
           </button>
-          
+
           <input
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type a message..."
-            className="input input-bordered flex-1 focus:input-primary bg-base-200/50 rounded-full px-6"
+            className="flex-1 px-6 py-3 rounded-full bg-slate-100/50 border-0 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-300"
           />
-          
+
           <button
             type="button"
-            className="btn btn-ghost btn-circle hover:bg-primary/10"
+            className="p-2 rounded-full text-slate-500 hover:bg-slate-100 hover:text-blue-600 transition-colors"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 text-primary"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </button>
-          
+
           <button
             type="submit"
             disabled={!newMessage.trim()}
-            className="btn btn-primary btn-circle shadow-lg hover:shadow-primary/50 transition-all duration-300 disabled:opacity-50"
+            className={cn(
+              "p-3 rounded-full transition-all duration-300",
+              "bg-gradient-to-r from-blue-600 to-blue-700 text-white",
+              "disabled:opacity-50 disabled:cursor-not-allowed",
+              "hover:shadow-lg hover:shadow-blue-500/30",
+              isSending && "scale-90"
+            )}
           >
             <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6"
+              className={cn(
+                "h-5 w-5 transition-transform duration-300",
+                isSending && "translate-x-1 -translate-y-1"
+              )}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
             </svg>
           </button>
         </div>
