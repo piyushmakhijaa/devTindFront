@@ -14,6 +14,7 @@ import { PersistGate } from "redux-persist/integration/react"
 import { useEffect } from 'react'
 import MyConnections from './pages/MyConnections'
 import Chat from './pages/Chat'
+import VideoChat from './pages/VideoChat'
 
 
 function AppRoutes() {
@@ -37,6 +38,7 @@ function AppRoutes() {
         <Route path='myRequests' element={<MyRequests />} />
         <Route path='myConnections' element={<MyConnections />} />
         <Route path='chat/:targetUserId' element={<Chat />} />
+        <Route path='chat/:targetUserId/videochat' element={<VideoChat />} />
       </Route>
     </Routes>
   );

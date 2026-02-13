@@ -5,7 +5,7 @@ import axios from "axios";
 import { BASE_URL } from "../utils/constants";
 import socket from "../utils/socket";
 import { cn } from "../utils/cn";
-
+import VideoCallIcon from '@mui/icons-material/VideoCall';
 function Chat() {
   const { targetUserId } = useParams();
   const navigate = useNavigate();
@@ -17,6 +17,8 @@ function Chat() {
   const [isSending, setIsSending] = useState(false);
   const messagesContainerRef = useRef(null);
   const { _id } = useSelector((state) => state.user);
+  const fromUserId = _id;
+  const peerRef = useRef(null);
 
   const scrollToBottom = () => {
     if (messagesContainerRef.current) {
@@ -45,12 +47,13 @@ function Chat() {
     const onReceiveMessage = (messageData) => {
       setMessages((prev) => [...prev, messageData]);
     };
-
+    
     socket.on("receive-message", onReceiveMessage);
 
     return () => {
       socket.off("connect", joinChat);
       socket.off("receive-message", onReceiveMessage);
+     // socket.off("joined-user", handleCall);
     };
   }, [_id, targetUserId]);
 
@@ -158,6 +161,15 @@ function Chat() {
           </h2>
           <p className="text-sm text-white/70">Online</p>
         </div>
+
+        <button
+  type="button"
+  onClick={() => navigate("videochat")}
+  className="p-2 rounded-full text-white/80 hover:bg-white/20 hover:text-white transition-all duration-200 hover:scale-105 active:scale-95"
+>
+  <VideoCallIcon className="h-6 w-6" />
+</button>
+
 
         <button className="p-2 rounded-full text-white/80 hover:bg-white/20 transition-colors">
           <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
