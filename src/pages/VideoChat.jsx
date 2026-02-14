@@ -7,6 +7,7 @@ import axios from 'axios';
 import { BASE_URL } from '../utils/constants';
 import { cn } from '../utils/cn';
 
+
 function VideoChat() {
   const videoRef = useRef(null);
   const remoteVideoRef = useRef(null);
@@ -14,14 +15,16 @@ function VideoChat() {
   const [remoteStream, setRemoteStream] = useState(null);
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
-  const [callStatus, setCallStatus] = useState('connecting'); // connecting | ringing | connected
+  const [callStatus, setCallStatus] = useState('connecting'); // connecting | ringing | connected | error
   const [targetUser, setTargetUser] = useState(null);
+  const [mediaError, setMediaError] = useState(null);
   const { targetUserId } = useParams();
   const { _id } = useSelector((state) => state.user);
   const user = useSelector((state) => state.user);
   const navigate = useNavigate();
 
   const {
+    peerRef,
     handleUserJoined,
     setLocalStream,
     incomingCall: hookIncomingCall,
@@ -88,14 +91,26 @@ function VideoChat() {
     if (!_id || !targetUserId) return;
 
     const start = async () => {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
-      });
-      streamRef.current = stream;
-      setLocalStream(stream);
-      if (videoRef.current) videoRef.current.srcObject = stream;
-      socket.emit('joinChat', { _id, targetUserId });
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: true,
+        });
+        streamRef.current = stream;
+        setLocalStream(stream);
+        if (videoRef.current) videoRef.current.srcObject = stream;
+        socket.emit('joinChat', { _id, targetUserId });
+      } catch (err) {
+        console.error('Failed to access camera/microphone:', err);
+        if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+          setMediaError('Camera/microphone permission denied. Please allow access and try again.');
+        } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+          setMediaError('No camera or microphone found on this device.');
+        } else {
+          setMediaError('Unable to access camera/microphone. Please check your device settings.');
+        }
+        setCallStatus('error');
+      }
     };
 
     start();
@@ -105,6 +120,10 @@ function VideoChat() {
         streamRef.current.getTracks().forEach((track) => track.stop());
       }
       if (videoRef.current) videoRef.current.srcObject = null;
+      if (peerRef.current) {
+        peerRef.current.close();
+        peerRef.current = null;
+      }
     };
   }, [_id, targetUserId]);
 
@@ -138,6 +157,11 @@ function VideoChat() {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
     }
+    if (peerRef?.current) {
+      peerRef.current.close();
+      peerRef.current = null;
+    }
+    socket.emit('call-ended', { to: targetUserId });
     navigate(-1);
   };
 
@@ -201,7 +225,25 @@ function VideoChat() {
       <div className="flex-1 relative flex items-center justify-center p-4 gap-4">
         {/* Remote Video (Large) */}
         <div className="relative flex-1 h-full max-h-[calc(100vh-200px)] rounded-2xl overflow-hidden bg-slate-800/80 border border-white/5 shadow-2xl">
-          {remoteStream ? (
+          {mediaError ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6">
+              <div className="w-16 h-16 rounded-full bg-red-500/15 flex items-center justify-center">
+                <svg className="h-8 w-8 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="text-center">
+                <p className="text-red-400 font-medium">Media Access Error</p>
+                <p className="text-white/50 text-sm mt-1 max-w-xs">{mediaError}</p>
+              </div>
+              <button
+                onClick={() => navigate(-1)}
+                className="mt-2 px-4 py-2 rounded-lg bg-white/10 text-white/80 hover:bg-white/15 text-sm transition-all"
+              >
+                Go Back
+              </button>
+            </div>
+          ) : remoteStream ? (
             <video
               ref={remoteVideoRef}
               autoPlay
